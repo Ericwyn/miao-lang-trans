@@ -1,9 +1,7 @@
-# MiaomiaomiaoTrans
-A translation tool for miaomiaomiao language
+# 喵语翻译器
+一款帮你在人话和喵喵语中互相翻译的工具
 
-# Online Translation
-
-please visit [this website](https://miao.meetwhy.com)
+欢迎在线访问 [喵语翻译器](https://ericwyn.github.io/miao-lang-trans/)
 
 # Preview
 ![preview](pic/trans.png)
