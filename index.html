@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Notification</title>
-    <meta name="viewport" content="width=device-width, initial-scale=0.9,  user-scalable=no">
+    <title>喵语翻译器</title>
+    <meta name="author" content="Ericwyn">
+    <meta name="description" content="喵语翻译器，一款帮你将人话翻译成喵喵语言的翻译工具~">
+    <meta name="viewport" content="width=device-width, initial-scale=0.9,  user-scalable=no" charset="utf-8">
     <link rel="stylesheet" href="css/mdui.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -36,7 +38,7 @@
                     <button class="mdui-btn mdui-color-grey-100 mdui-text-color-black-text">
                         <b id="namel">喵喵喵</b>
                     </button>
-                    <button class="mdui-btn mdui-color-grey-100 mdui-text-color-black-text mdui-float-right" onclick="change()" id="change">
+                    <button class="mdui-btn mdui-color-grey-100 mdui-text-color-black-text mdui-float-right" onclick="changeLang()" id="change">
                         <i class="mdui-icon material-icons">swap_horiz</i>
                     </button>
                 </div>
@@ -48,9 +50,9 @@
             <div class="mdui-col-xs-12 mdui-col-sm-6">
                 <div style="" class="mdui-m-b-1">
                     <button class="mdui-btn mdui-color-grey-100 mdui-text-color-black-text">
-                        <b id="namer">英文</b>
+                        <b id="namer">人话</b>
                     </button>
-                    <button class="mdui-btn mdui-color-blue-400 mdui-text-color-white mdui-m-l-1" onclick="trans()">
+                    <button class="mdui-btn mdui-color-blue-400 mdui-text-color-white mdui-m-l-1" onclick="startTrans()">
                         <b>翻译</b>
                     </button>
                 </div>
@@ -65,58 +67,101 @@
         </div>
     </footer>
 </body>
-<script src="js/marked.js"></script>
+<!-- <script src="js/marked.js"></script> -->
 <script>
-    var flag = 1;
+
+    const byteMap = {
+        "0": "喵喵",
+        "1": "喵呜",
+        "2": "喵咪",
+        "3": "喵嗷",
+        "4": "呜喵",
+        "5": "呜呜",
+        "6": "呜咪",
+        "7": "呜嗷",
+        "8": "咪喵",
+        "9": "咪呜",
+        "a": "咪咪",
+        "b": "咪嗷",
+        "c": "嗷喵",
+        "d": "嗷呜",
+        "e": "嗷咪",
+        "f": "嗷嗷",
+    }
+    const miaoMap = {
+        "喵喵":  "0",
+        "喵呜":  "1",
+        "喵咪":  "2",
+        "喵嗷":  "3",
+        "呜喵":  "4",
+        "呜呜":  "5",
+        "呜咪":  "6",
+        "呜嗷":  "7",
+        "咪喵":  "8",
+        "咪呜":  "9",
+        "咪咪":  "a",
+        "咪嗷":  "b",
+        "嗷喵":  "c",
+        "嗷呜":  "d",
+        "嗷咪":  "e",
+        "嗷嗷":  "f",
+    }
+
+    const FLAG_MIAO_2_LANG = 1;
+    const FLAG_LANG_2_MIAO = 2;
+
+    let transFlag = 1;
+
+    /**
+     * 加密 
+     */
     function encryption(str) {
-        var temp = '';
-        var res = '';
-        var binary;
-        for(var i =0;i<str.length;i++){
-            var log = str.charAt(i);
-            binary = (""+str.charAt(i)).charCodeAt().toString(2);
-            var length=binary.length;
-            for (var j=0;j<8-length;j++){
-                binary = '0'+binary;
+        function byte16ToMiao(byte16Str) {
+            let res = "";
+            for (let i = 0; i < byte16Str.length; i++) {
+                res += byteMap["" + byte16Str.charAt(i)]
             }
-            temp = temp+binary;
+            return res;
         }
-        for(i=0;i<temp.length;i++){
-            if (temp.charAt(i) === '1'){
-                res = res+'喵';
-            }else if (temp.charAt(i) === '0'){
-                res = res+'呜';
-            }
+
+        // let str = "我爱北京天安门, helloworld";
+        let val = "";
+        for(let i = 0; i < str.length; i++){
+            if (val === "")
+                val = byte16ToMiao(str.charCodeAt(i).toString(16))
+            else
+                val += "呼" + byte16ToMiao(str.charCodeAt(i).toString(16))
         }
-        return res;
+        return val;
     }
 
-    function decryption(encrypt) {
-        var binary = '';
-        for(var i=0;i<encrypt.length;i++){
-            if (encrypt.charAt(i) === '喵'){
-                binary = binary+'1';
-            }else if (encrypt.charAt(i) === '呜'){
-                binary = binary+'0';
+    /**
+     * 解密
+     */
+    function decryption(miaoStr) {
+        function miaoToByte16(miaoStr) {
+            let res = ""
+            for (let i = 0; i < miaoStr.length; i += 2) {
+                res += miaoMap["" + miaoStr.charAt(i) + miaoStr.charAt(i + 1)]
             }
+            // console.log(miaoStr + "->" + res)
+            return res;
         }
-        console.log(binary);
-        var allRes = '';
-        var temp='';
-        var wordRes='';
-        for (i=0;i<binary.length;i+=8){
-            temp='';
-            for (var j=0;j<8;j++){
-                temp = temp+binary.charAt(i+j);
-            }
-            wordRes = wordRes+String.fromCharCode(parseInt(temp,2));
-        }
-        return wordRes;
+
+        let val = "";
+        let miaoChar = miaoStr.split("呼");
+        miaoChar.forEach(miao => {
+            val += String.fromCharCode(parseInt(miaoToByte16(miao),16))
+        })
+        return val
     }
 
-    function trans() {
+    /**
+     * 开始翻译
+     */
+    function startTrans() {
         //喵喵喵翻译成英文
-        if(flag === 1){
+        if(transFlag === FLAG_MIAO_2_LANG){
             document.getElementById("output").value = decryption(
                 document.getElementById("input").value
             )
@@ -127,17 +172,37 @@
         }
     }
 
-    function change () {
+    /**
+     * 更换翻译语言
+     */
+    function changeLang () {
         document.getElementById("output").value ="";
-        if (flag == 1){
-            flag=2;
-            document.getElementById("namel").innerText="英文";
+        if (transFlag == FLAG_MIAO_2_LANG){
+            transFlag= FLAG_LANG_2_MIAO;
+            document.getElementById("namel").innerText="人话";
             document.getElementById("namer").innerText="喵喵喵";
-        }else if (flag == 2){
-            flag=1;
+        }else if (transFlag == FLAG_LANG_2_MIAO){
+            transFlag = FLAG_MIAO_2_LANG;
             document.getElementById("namel").innerText="喵喵喵";
-            document.getElementById("namer").innerText="英文";
+            document.getElementById("namer").innerText="人话";
         }
     }
+
+
+    /**
+     * 给 input 框添加自动监听
+     */
+    document.getElementById("input").addEventListener("input", function() {
+        if(document.getElementById("input").value.indexOf("喵") >= 0 && document.getElementById("input").value.indexOf("呜") >= 0) {
+            if (transFlag != FLAG_MIAO_2_LANG) {
+                changeLang();
+            }
+        } else {
+            if (transFlag != FLAG_LANG_2_MIAO) {
+                changeLang();
+            }
+        }
+    })
+
 </script>
 </html>
